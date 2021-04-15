@@ -11,7 +11,7 @@ from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
 from detectron2.data.catalog import DatasetCatalog
 
-
+#register train, validation and test set. Annotations should be in COCO format
 from detectron2.data.datasets import register_coco_instances
 register_coco_instances("my_dataset_train", {}, "/content/train/_annotations.coco.json", "/content/train")
 register_coco_instances("my_dataset_val", {}, "/content/valid/_annotations.coco.json", "/content/valid")
@@ -19,6 +19,8 @@ register_coco_instances("my_dataset_test", {}, "/content/test/_annotations.coco.
 my_dataset_train_metadata = MetadataCatalog.get("my_dataset_train")
 dataset_dicts = DatasetCatalog.get("my_dataset_train")
 
+
+#randomly display the annotations of 3 training images
 import random
 from detectron2.utils.visualizer import Visualizer
 
@@ -28,6 +30,7 @@ for d in random.sample(dataset_dicts, 3):
     vis = visualizer.draw_dataset_dict(d)
     cv2_imshow(vis.get_image()[:, :, ::-1])
 
+#declare a hook to find validation loss every 50 iteration
 from detectron2.engine.hooks import HookBase
 from detectron2.evaluation import inference_context
 from detectron2.utils.logger import log_every_n_seconds
@@ -98,7 +101,9 @@ class LossEvalHook(HookBase):
         if is_final or (self._period > 0 and next_iter % self._period == 0):
             self._do_loss_eval()
         self.trainer.storage.put_scalars(timetest=12)
-#A trainer with default training logic
+        
+        
+#A trainer with default training logic, with the hook to calculate validation loss. 
 from detectron2.engine import DefaultTrainer   
 from detectron2.evaluation import COCOEvaluator
 
@@ -124,6 +129,8 @@ class CocoTrainer(DefaultTrainer):
             )
         ))
         return hooks
+    
+#declare all config specifications for the trainer
 from detectron2.config import get_cfg
 #from detectron2.evaluation.coco_evaluation import COCOEvaluator
 import os
