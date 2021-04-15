@@ -1,6 +1,8 @@
 from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_test_loader
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
+
+#Do COCO Eval for validation set
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.85
 predictor = DefaultPredictor(cfg)
@@ -8,6 +10,8 @@ evaluator = COCOEvaluator("my_dataset_val", cfg, False, output_dir="./output/")
 val_loader = build_detection_test_loader(cfg, "my_dataset_val")
 inference_on_dataset(trainer.model, val_loader, evaluator)
 
+
+#display predicted bboxes for images in test folder
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
 cfg.DATASETS.TEST = ("my_dataset_test", )
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.25   # set the testing threshold for this model
