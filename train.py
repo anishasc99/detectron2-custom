@@ -41,7 +41,7 @@ import time
 import datetime
 import logging
 
-
+#hook to evaluate training loss every 50 iterations
 class LossEvalHook(HookBase):
     def __init__(self, eval_period, model, data_loader):
         self._model = model
@@ -101,9 +101,38 @@ class LossEvalHook(HookBase):
         if is_final or (self._period > 0 and next_iter % self._period == 0):
             self._do_loss_eval()
         self.trainer.storage.put_scalars(timetest=12)
+
+
+#hook for early stopping based on convergence logic
+class EarlyStop(HookBase):
+    def __init__(self, eval_period, model, data_loader):
+        self._model = model
+        self._period = eval_period
+        self._data_loader = data_loader
+        self._previous_loss = 0
+        self._current_loss = 0
+
+    def before_step(self):
+        if (self.trainer.iter > 0):
+          #print("before step", self.trainer.storage.history("total_loss").latest())
+          self._previous_loss = self.trainer.storage.history("total_loss").latest()
+        self.trainer.storage.put_scalars(timetest=12)    
         
+    def after_step(self):
+        #print("After step",self.trainer.storage.history("total_loss").latest())
+        self._current_loss = self.trainer.storage.history("total_loss").latest()
+        if (self.trainer.iter > 1):
+          convergence = abs(self._previous_loss - self._current_loss)
+          print("Convergence: ",convergence, " Previous loss: ",self._previous_loss, " Current loss: ",self._current_loss)
+          if convergence<1e-5:
+              raise SystemExit("Stop right there!")
+        self.trainer.storage.put_scalars(timetest=12)
         
 #A trainer with default training logic, with the hook to calculate validation loss. 
+from detectron2.engine import DefaultTrainer   
+from detectron2.evaluation import COCOEvaluator
+
+#A trainer with default training logic
 from detectron2.engine import DefaultTrainer   
 from detectron2.evaluation import COCOEvaluator
 
@@ -119,6 +148,14 @@ class CocoTrainer(DefaultTrainer):
     return COCOEvaluator(dataset_name, cfg, False, output_folder)
   def build_hooks(self):
         hooks = super().build_hooks()
+        hooks.insert(-1,EarlyStop(
+            cfg.TEST.EVAL_PERIOD,
+            self.model,
+            build_detection_test_loader(
+                self.cfg,
+                self.cfg.DATASETS.TEST[0],
+                DatasetMapper(self.cfg,True)
+            )))
         hooks.insert(-1,LossEvalHook(
             cfg.TEST.EVAL_PERIOD,
             self.model,
