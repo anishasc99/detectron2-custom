@@ -122,9 +122,9 @@ class EarlyStop(HookBase):
         #print("After step",self.trainer.storage.history("total_loss").latest())
         self._current_loss = self.trainer.storage.history("total_loss").latest()
         if (self.trainer.iter > 1):
-          convergence = abs(self._previous_loss - self._current_loss)
-          print("Convergence: ",convergence, " Previous loss: ",self._previous_loss, " Current loss: ",self._current_loss)
-          if convergence<1e-5:
+          delta = abs(self._previous_loss - self._current_loss)
+          print("Delta: ",delta, " Previous loss: ",self._previous_loss, " Current loss: ",self._current_loss)
+          if delta < 1e-5:
               raise SystemExit("Stop right there!")
         self.trainer.storage.put_scalars(timetest=12)
         
