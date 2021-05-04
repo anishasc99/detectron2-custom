@@ -71,6 +71,7 @@ for imageName in glob.glob('/content/invoice-flask-API/detectron2-custom/test/*j
   output_pred_classes = outputs["instances"].pred_classes
   classes = []
   j = 0
+  categories = {1:"date",2:"from",3:"invoice_number",4:"product_name",5:"product_price",6:"product_quantity",7:"to",8:"total_amount"}
   for i in output_pred_classes.__iter__():
     classes.append(i.cpu().numpy())
     
@@ -81,7 +82,8 @@ for imageName in glob.glob('/content/invoice-flask-API/detectron2-custom/test/*j
     x2 = int(coords[2])
     y2 = int(coords[3])
     crop_img = im[y1:y2, x1:x2]
-    cv2.imwrite("./cropped images/croppedIm_"+str(classes[j])+".jpg",crop_img)
+    key = int(classes[j])
+    cv2.imwrite("./cropped images/croppedIm_"+categories[key]+".jpg",crop_img)
     j += 1
 
   v = Visualizer(im[:, :, ::-1],
