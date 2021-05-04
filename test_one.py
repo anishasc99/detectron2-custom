@@ -23,6 +23,7 @@ from detectron2.utils.visualizer import ColorMode
 from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_test_loader
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
+DatasetCatalog.clear()
 register_coco_instances("my_dataset_test", {}, "/content/test/_annotations.coco.json", "/content/test")
 
 cfg = get_cfg()
